@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Review — {{ run_id }}{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <h1>Review & Sign-off</h1>
+      <p>Run ID: <code style="font-family:var(--font-mono); color:var(--accent-teal);">{{ run_id }}</code> — Human-in-the-Loop Governance</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <a href="/pipeline/{{ run_id }}" class="btn btn--secondary btn--sm">🔄 Pipeline View</a>
+      <a href="/audit/{{ run_id }}" class="btn btn--secondary btn--sm">📜 Audit Trail</a>
+      <a href="/" class="btn btn--secondary btn--sm">← Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<div id="review-content">
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+    Loading review data...
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const RUN_ID = '{{ run_id }}';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadReviewData();
+});
+
+async function loadReviewData() {
+  const container = document.getElementById('review-content');
+  try {
+    const [pipelineRes, dossierRes, e2bRes] = await Promise.all([
+      fetch(`/api/pipeline/${RUN_ID}`),
+      fetch(`/api/pipeline/${RUN_ID}/dossier`),
+      fetch(`/api/pipeline/${RUN_ID}/e2b`),
+    ]);
+
+    if (!pipelineRes.ok) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Run Not Found</div></div>`;
+      return;
+    }
+
+    const pipeline = await pipelineRes.json();
+    const dossier = await dossierRes.json();
+    const e2b = await e2bRes.json();
+
+    const state = pipeline.state || {};
+    const assessment = state.regulatory_assessment || {};
+    const supac = assessment.supac || {};
+    const ema = assessment.ema || {};
+    const criticFeedback = state.critic_feedback || [];
+    const isApproved = pipeline.status === 'approved';
+    const isReview = pipeline.status === 'review';
+
+    // Build the review page
+    let html = '';
+
+    // Status banner
+    if (isApproved) {
+      html += `
+        <div class="card" style="border-color: var(--status-approved); background: rgba(20, 184, 166, 0.05); margin-bottom: 24px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:28px;">✅</span>
+            <div>
+              <div style="font-weight:700; font-size:1.1rem; color: var(--status-approved);">Approved & Signed</div>
+              <div style="color: var(--text-secondary); font-size:0.85rem;">Electronic signature applied per 21 CFR Part 11. Approved at: ${pipeline.approved_at || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Assessment Summary
+    html += `
+      <div class="review-grid">
+        <div class="review-panel">
+          <h3>📊 Regulatory Assessment Summary</h3>
+          <div class="review-content">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+              <div>
+                <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">SUPAC Classification</div>
+                <div style="font-size:1.4rem; font-weight:700; color:var(--accent-teal);">Level ${supac.level || 'N/A'}</div>
+                <div style="font-size:0.83rem; color:var(--text-secondary);">${supac.filing_type || 'N/A'}</div>
+              </div>
+              <div>
+                <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">EMA Variation</div>
+                <div style="font-size:1.4rem; font-weight:700; color:var(--accent-blue);">${ema.variation_type || 'N/A'}</div>
+              </div>
+              <div>
+                <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">Overall Risk</div>
+                <div style="font-size:1.2rem; font-weight:700; color:${assessment.overall_risk === 'High' ? 'var(--status-error)' : assessment.overall_risk === 'Medium' ? 'var(--status-running)' : 'var(--status-complete)'};">${assessment.overall_risk || 'N/A'}</div>
+              </div>
+              <div>
+                <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">Recommended Filing</div>
+                <div style="font-size:1rem; font-weight:600;">${assessment.recommended_submission || 'N/A'}</div>
+              </div>
+            </div>
+
+            <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Required Tests</div>
+            <div style="margin-bottom:16px;">${(supac.required_tests || []).map(t => `<span class="badge badge--teal" style="margin:2px;">${t}</span>`).join(' ')}</div>
+
+            <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Gap Analysis</div>
+            <div style="font-size:0.83rem; color:var(--text-secondary); line-height:1.7;">${escapeHtml(assessment.gap_analysis || '')}</div>
+
+            <div style="font-size:0.73rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin: 12px 0 6px;">Strategy</div>
+            <div style="font-size:0.83rem; color:var(--text-secondary); line-height:1.7;">${escapeHtml(assessment.strategy_summary || '')}</div>
+          </div>
+        </div>
+
+        <div class="review-panel">
+          <h3>🔎 Critic Feedback</h3>
+          <div class="review-content">
+            ${criticFeedback.length > 0
+              ? criticFeedback.map(f => {
+                  const isCritical = f.startsWith('CRITICAL');
+                  const isWarning = f.startsWith('WARNING');
+                  const color = isCritical ? 'var(--status-error)' : isWarning ? 'var(--status-running)' : 'var(--text-secondary)';
+                  return `<div style="padding:6px 0; border-bottom:1px solid var(--border-subtle); color:${color}; font-size:0.83rem;">• ${escapeHtml(f)}</div>`;
+                }).join('')
+              : '<div style="color:var(--status-complete); font-size:0.87rem;">✅ No issues found. All outputs validated.</div>'
+            }
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Dossier Preview
+    html += `
+      <div class="review-panel" style="margin-top:20px;">
+        <h3>📄 M4Q(R2) Dossier Preview</h3>
+        <div class="dossier-content">
+          <h2>Module 2.3 — Quality Overall Summary</h2>
+          <h3>2.3.2 Overall Control Strategy</h3>
+          <div class="review-content">${escapeHtml(dossier.module_2_3?.section_2_3_2 || 'Not generated')}</div>
+          <h3>2.3.4 Development Justification</h3>
+          <div class="review-content">${escapeHtml(dossier.module_2_3?.section_2_3_4 || 'Not generated')}</div>
+          <h3>Core Quality Information</h3>
+          <div class="review-content">${escapeHtml(dossier.module_2_3?.core_quality_information || 'Not generated')}</div>
+
+          <h2>Module 3 — Body of Data</h2>
+          <h3>Drug Substance — Description</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_substance?.description || 'Not generated')}</div>
+          <h3>Drug Substance — Manufacture</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_substance?.manufacture || 'Not generated')}</div>
+          <h3>Drug Substance — Control</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_substance?.control || 'Not generated')}</div>
+          <h3>Drug Substance — Storage</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_substance?.storage || 'Not generated')}</div>
+
+          <h3>Drug Product — Description</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_product?.description || 'Not generated')}</div>
+          <h3>Drug Product — Manufacture</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_product?.manufacture || 'Not generated')}</div>
+          <h3>Drug Product — Control</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_product?.control || 'Not generated')}</div>
+          <h3>Drug Product — Storage</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.drug_product?.storage || 'Not generated')}</div>
+
+          <h3>Validation Data</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.validation_data || 'Not generated')}</div>
+          <h3>Batch Analyses</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.batch_analyses || 'Not generated')}</div>
+          <h3>Technical Reports</h3>
+          <div class="review-content">${escapeHtml(dossier.module_3?.technical_reports || 'Not generated')}</div>
+        </div>
+      </div>
+    `;
+
+    // E2B XML Preview
+    if (e2b.has_xml) {
+      html += `
+        <div class="review-panel" style="margin-top:20px;">
+          <h3>💊 E2B(R3) XML Preview</h3>
+          <div class="xml-preview">${escapeHtml(e2b.xml)}</div>
+        </div>
+      `;
+    }
+
+    // Approval action
+    if (isReview) {
+      html += `
+        <div class="review-actions">
+          <div class="review-warning">
+            ⚠ This action applies an electronic signature per 21 CFR Part 11. Review all outputs carefully.
+          </div>
+          <button class="btn btn--approve" onclick="approvePipeline(this)" id="approve-btn">
+            ✍ Approve & Apply E-Signature
+          </button>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Error</div><div class="empty-state-text">${err.message}</div></div>`;
+  }
+}
+
+async function approvePipeline(btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Signing...';
+
+  try {
+    const res = await fetch(`/api/review/${RUN_ID}/approve`, { method: 'POST' });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast('✅ Pipeline approved with electronic signature!');
+      await loadReviewData(); // Refresh
+    } else {
+      showToast('❌ ' + (data.detail || 'Approval failed'));
+      btn.disabled = false;
+      btn.innerHTML = '✍ Approve & Apply E-Signature';
+    }
+  } catch (err) {
+    showToast('❌ ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '✍ Approve & Apply E-Signature';
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline — {{ run_id }}{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <h1>Pipeline Execution</h1>
+      <p>Run ID: <code style="font-family:var(--font-mono); color:var(--accent-teal);">{{ run_id }}</code></p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <a href="/review/{{ run_id }}" class="btn btn--secondary btn--sm">📋 Review & Sign</a>
+      <a href="/audit/{{ run_id }}" class="btn btn--secondary btn--sm">📜 Audit Trail</a>
+      <a href="/" class="btn btn--secondary btn--sm">← Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline Graph Visualization -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="pipeline-graph" id="pipeline-graph">
+    <div class="pipeline-node">
+      <div class="pipeline-node-circle" id="node-supervisor">🎯</div>
+      <div class="pipeline-node-label">Supervisor</div>
+    </div>
+    <div class="pipeline-edge" id="edge-1"></div>
+    <div class="pipeline-node">
+      <div class="pipeline-node-circle" id="node-qms_extraction">🔍</div>
+      <div class="pipeline-node-label">QMS Extraction</div>
+    </div>
+    <div class="pipeline-edge" id="edge-2"></div>
+    <div class="pipeline-node">
+      <div class="pipeline-node-circle" id="node-regulatory_assessment">📊</div>
+      <div class="pipeline-node-label">Regulatory Assessment</div>
+    </div>
+    <div class="pipeline-edge" id="edge-3"></div>
+    <div class="pipeline-node">
+      <div class="pipeline-node-circle" id="node-dossier_structuring">📄</div>
+      <div class="pipeline-node-label">Dossier M4Q(R2)</div>
+    </div>
+    <div class="pipeline-edge" id="edge-4"></div>
+    <div class="pipeline-node">
+      <div class="pipeline-node-circle" id="node-pv_e2b">💊</div>
+      <div class="pipeline-node-label">PV E2B(R3)</div>
+    </div>
+    <div class="pipeline-edge" id="edge-5"></div>
+    <div class="pipeline-node">
+      <div class="pipeline-node-circle" id="node-critic">🔎</div>
+      <div class="pipeline-node-label">Critic</div>
+    </div>
+  </div>
+</div>
+
+<!-- Agent Output Panels -->
+<div class="agent-outputs" id="agent-outputs">
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+    Loading pipeline data...
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const RUN_ID = '{{ run_id }}';
+
+const AGENT_META = {
+  supervisor: { icon: '🎯', label: 'Supervisor Agent', color: 'var(--accent-indigo)' },
+  qms_extraction: { icon: '🔍', label: 'QMS Extraction Agent', color: 'var(--accent-blue)' },
+  regulatory_assessment: { icon: '📊', label: 'Regulatory Assessment Agent', color: 'var(--accent-teal)' },
+  dossier_structuring: { icon: '📄', label: 'Dossier Structuring Agent (M4Q-R2)', color: '#f59e0b' },
+  pv_e2b: { icon: '💊', label: 'PV E2B(R3) Formatting Agent', color: '#ef4444' },
+  critic: { icon: '🔎', label: 'Critic / Reflection Node', color: '#8b5cf6' },
+};
+
+const AGENT_ORDER = ['supervisor', 'qms_extraction', 'regulatory_assessment', 'dossier_structuring', 'pv_e2b', 'critic'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadPipelineData();
+});
+
+async function loadPipelineData() {
+  const container = document.getElementById('agent-outputs');
+  try {
+    const res = await fetch(`/api/pipeline/${RUN_ID}`);
+    if (!res.ok) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Run Not Found</div><div class="empty-state-text">Pipeline run ${RUN_ID} does not exist.</div></div>`;
+      return;
+    }
+    const data = await res.json();
+    renderPipelineGraph(data);
+    renderAgentOutputs(data);
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Error</div><div class="empty-state-text">${err.message}</div></div>`;
+  }
+}
+
+function renderPipelineGraph(data) {
+  const events = data.events || [];
+  const completedAgents = new Set();
+
+  // Collect completed agents from events
+  events.forEach(event => {
+    Object.keys(event).forEach(nodeName => {
+      completedAgents.add(nodeName);
+    });
+  });
+
+  const currentAgent = data.state?.current_agent || '';
+  const nodeOrder = ['supervisor', 'qms_extraction', 'regulatory_assessment', 'dossier_structuring', 'pv_e2b', 'critic'];
+
+  nodeOrder.forEach((agent, i) => {
+    const node = document.getElementById(`node-${agent}`);
+    if (!node) return;
+
+    if (completedAgents.has(agent)) {
+      node.classList.add('complete');
+    }
+    if (agent === currentAgent && data.status === 'running') {
+      node.classList.add('active');
+      node.classList.remove('complete');
+    }
+
+    // Edges
+    if (i < nodeOrder.length - 1) {
+      const edge = document.getElementById(`edge-${i + 1}`);
+      if (edge && completedAgents.has(agent)) {
+        edge.classList.add('complete');
+      }
+    }
+  });
+
+  // Handle PV E2B — grey it out if no adverse event
+  if (!data.state?.has_adverse_event) {
+    const pvNode = document.getElementById('node-pv_e2b');
+    if (pvNode) {
+      pvNode.style.opacity = '0.3';
+      const label = pvNode.closest('.pipeline-node')?.querySelector('.pipeline-node-label');
+      if (label) label.style.opacity = '0.3';
+    }
+  }
+}
+
+function renderAgentOutputs(data) {
+  const container = document.getElementById('agent-outputs');
+  const events = data.events || [];
+  const agentOutputs = {};
+
+  // Collect outputs per agent
+  events.forEach(event => {
+    Object.entries(event).forEach(([nodeName, update]) => {
+      if (!agentOutputs[nodeName]) agentOutputs[nodeName] = [];
+      const messages = update.messages || [];
+      messages.forEach(m => {
+        agentOutputs[nodeName].push(m.content || '');
+      });
+    });
+  });
+
+  // Render panels in order
+  const panels = AGENT_ORDER
+    .filter(agent => agentOutputs[agent])
+    .map(agent => {
+      const meta = AGENT_META[agent] || { icon: '⚙', label: agent, color: 'var(--text-muted)' };
+      const output = agentOutputs[agent].join('\n\n');
+      const status = data.state?.current_agent === agent && data.status === 'running' ? 'running' : 'complete';
+
+      return `
+        <div class="agent-panel expanded" id="panel-${agent}">
+          <div class="agent-panel-header" onclick="togglePanel('panel-${agent}')">
+            <div class="agent-panel-header-left">
+              <div class="agent-panel-icon" style="border-color: ${meta.color};">${meta.icon}</div>
+              <div>
+                <div class="agent-panel-title">${meta.label}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="badge badge--${status}">${status === 'running' ? '<span class="pulse-dot"></span>' : ''}${status}</span>
+              <span class="agent-panel-chevron">▾</span>
+            </div>
+          </div>
+          <div class="agent-panel-content">
+            <div class="agent-output-text">${escapeHtml(output)}</div>
+          </div>
+        </div>
+      `;
+    });
+
+  container.innerHTML = panels.join('');
+
+  // Add E2B XML preview if available
+  if (data.state?.e2b_xml) {
+    container.innerHTML += `
+      <div class="agent-panel expanded" id="panel-e2b-xml">
+        <div class="agent-panel-header" onclick="togglePanel('panel-e2b-xml')">
+          <div class="agent-panel-header-left">
+            <div class="agent-panel-icon" style="border-color: #ef4444;">📋</div>
+            <div class="agent-panel-title">Generated E2B(R3) XML</div>
+          </div>
+          <span class="agent-panel-chevron">▾</span>
+        </div>
+        <div class="agent-panel-content">
+          <div class="xml-preview">${escapeHtml(data.state.e2b_xml)}</div>
+        </div>
+      </div>
+    `;
+  }
+}
+</script>
+{% endblock %}

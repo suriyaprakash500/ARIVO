@@ -1,0 +1,14 @@
+services:
+  arivo:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    volumes:
+      - ./arivo/data:/app/arivo/data
+    restart: unless-stopped

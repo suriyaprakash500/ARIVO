@@ -1,0 +1,36 @@
+{
+  "type_ia": {
+    "name": "Type IA Variation",
+    "description": "Minor variation requiring no prior approval. Notification within 12 months.",
+    "examples": [
+      "Minor change to address of manufacturer",
+      "Tightening of specification limits",
+      "Deletion of non-significant specification parameter"
+    ]
+  },
+  "type_ib": {
+    "name": "Type IB Variation",
+    "description": "Minor variation requiring notification. Implementation 30 days after notification.",
+    "examples": [
+      "Change in supplier of excipient (within monograph)",
+      "Minor change in manufacturing process not affecting quality",
+      "Addition of new specification parameter"
+    ]
+  },
+  "type_ii": {
+    "name": "Type II Variation",
+    "description": "Major variation requiring prior approval before implementation.",
+    "examples": [
+      "Change in manufacturing site of active substance",
+      "Major change in manufacturing process",
+      "Change in composition (qualitative or >5% quantitative)",
+      "New indication or dosage form"
+    ]
+  },
+  "mapping_from_supac": {
+    "Annual Report": "Type IA",
+    "CBE-0": "Type IA",
+    "CBE-30": "Type IB",
+    "PAS": "Type II"
+  }
+}

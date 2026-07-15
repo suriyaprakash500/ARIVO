@@ -1,0 +1,12 @@
+[
+  {"code": "10022095", "pt": "Injection site reaction", "soc": "General disorders and administration site conditions"},
+  {"code": "10037660", "pt": "Pyrexia", "soc": "General disorders and administration site conditions"},
+  {"code": "10002198", "pt": "Anaphylactic reaction", "soc": "Immune system disorders"},
+  {"code": "10040785", "pt": "Skin irritation", "soc": "Skin and subcutaneous tissue disorders"},
+  {"code": "10030911", "pt": "Nausea", "soc": "Gastrointestinal disorders"},
+  {"code": "10047700", "pt": "Vomiting", "soc": "Gastrointestinal disorders"},
+  {"code": "10019211", "pt": "Headache", "soc": "Nervous system disorders"},
+  {"code": "10013573", "pt": "Diarrhoea", "soc": "Gastrointestinal disorders"},
+  {"code": "10037844", "pt": "Rash", "soc": "Skin and subcutaneous tissue disorders"},
+  {"code": "10022611", "pt": "Injection site erythema", "soc": "General disorders and administration site conditions"}
+]

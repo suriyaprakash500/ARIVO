@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Trail — {{ run_id }}{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <h1>ALCOA+ Audit Trail</h1>
+      <p>Run ID: <code style="font-family:var(--font-mono); color:var(--accent-teal);">{{ run_id }}</code> — Attributable, Legible, Contemporaneous, Original, Accurate</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <a href="/pipeline/{{ run_id }}" class="btn btn--secondary btn--sm">🔄 Pipeline</a>
+      <a href="/review/{{ run_id }}" class="btn btn--secondary btn--sm">📋 Review</a>
+      <a href="/" class="btn btn--secondary btn--sm">← Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:24px; padding:16px 20px;">
+  <div style="display:flex; gap:20px; flex-wrap:wrap;">
+    <div class="badge badge--teal">📌 Attributable</div>
+    <div class="badge badge--teal">📖 Legible</div>
+    <div class="badge badge--teal">⏱ Contemporaneous</div>
+    <div class="badge badge--teal">📎 Original</div>
+    <div class="badge badge--teal">✓ Accurate</div>
+    <div class="badge badge--teal">📦 Complete</div>
+    <div class="badge badge--teal">🔗 Consistent</div>
+    <div class="badge badge--teal">💾 Enduring</div>
+    <div class="badge badge--teal">🔓 Available</div>
+  </div>
+</div>
+
+<div id="audit-content">
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+    Loading audit trail...
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const RUN_ID = '{{ run_id }}';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const container = document.getElementById('audit-content');
+  try {
+    const res = await fetch(`/api/audit/${RUN_ID}`);
+    if (!res.ok) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📜</div><div class="empty-state-title">No Audit Trail</div><div class="empty-state-text">Run ${RUN_ID} not found.</div></div>`;
+      return;
+    }
+    const trail = await res.json();
+
+    if (trail.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📜</div><div class="empty-state-title">Empty Trail</div><div class="empty-state-text">No audit entries recorded yet.</div></div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="audit-timeline">
+        ${trail.map(entry => {
+          const isHuman = entry.agent === 'human_reviewer';
+          const time = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A';
+          return `
+            <div class="audit-entry ${isHuman ? 'human' : ''}">
+              <div class="audit-entry-header">
+                <span class="audit-agent">${agentLabel(entry.agent)}</span>
+                <span class="audit-action">${entry.action || 'N/A'}</span>
+                <span class="audit-time">${time}</span>
+              </div>
+              <div class="audit-detail">${escapeHtml(entry.detail || '')}</div>
+              ${entry.citations && entry.citations.length > 0 ? `
+                <div class="audit-citations">
+                  <ul>${entry.citations.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
+                </div>
+              ` : ''}
+              ${entry.session_id ? `<div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px; font-family:var(--font-mono);">Session: ${entry.session_id}</div>` : ''}
+              ${entry.signer ? `<div style="font-size:0.8rem; color:var(--accent-indigo); margin-top:4px; font-weight:600;">👤 ${entry.signer}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Error</div><div class="empty-state-text">${err.message}</div></div>`;
+  }
+});
+
+function agentLabel(agent) {
+  const map = {
+    supervisor: '🎯 Supervisor',
+    qms_extraction: '🔍 QMS Extraction',
+    regulatory_assessment: '📊 Regulatory Assessment',
+    dossier_structuring: '📄 Dossier Structuring',
+    pv_e2b: '💊 PV E2B(R3)',
+    critic: '🔎 Critic',
+    human_reviewer: '👤 Human Reviewer',
+  };
+  return map[agent] || agent;
+}
+</script>
+{% endblock %}

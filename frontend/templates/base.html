@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ARIVO{% endblock %} — Regulatory Intelligence</title>
+  <meta name="description" content="Agentic Regulatory Intelligence & Variation Orchestrator for pharmaceutical post-approval lifecycle management">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <a href="/" class="logo">
+        <div class="logo-icon">A</div>
+        <div>
+          <div class="logo-text"><span>ARIVO</span></div>
+          <div class="logo-subtitle">Regulatory Intelligence Orchestrator</div>
+        </div>
+      </a>
+      <nav class="header-nav">
+        <a href="/" class="{% block nav_dashboard %}{% endblock %}">Dashboard</a>
+      </nav>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

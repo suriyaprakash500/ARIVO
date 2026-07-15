@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h1>Change Control Pipeline</h1>
+  <p>Select a QMS change control to trigger the multi-agent regulatory assessment pipeline.</p>
+</div>
+
+<!-- Recent Runs -->
+<div id="recent-runs" style="margin-bottom: 32px;"></div>
+
+<!-- Change Controls Grid -->
+<div id="change-controls" class="card-grid">
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+    Loading change controls from Veeva Vault QMS...
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadChangeControls();
+  await loadRecentRuns();
+});
+
+async function loadChangeControls() {
+  const container = document.getElementById('change-controls');
+  try {
+    const res = await fetch('/api/change-controls');
+    const controls = await res.json();
+
+    container.innerHTML = controls.map(cc => `
+      <div class="card" id="cc-${cc.change_control_id}">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${cc.title}</div>
+            <div class="card-subtitle">${cc.change_control_id}</div>
+          </div>
+          <span class="badge badge--teal">${cc.change_type}</span>
+        </div>
+        <div class="card-body">
+          <div class="meta-row">
+            <span class="meta-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+              ${cc.status}
+            </span>
+            ${cc.has_adverse_event ? '<span class="badge badge--ae" style="font-size:0.7rem">⚠ Adverse Event</span>' : ''}
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="meta-tag" style="font-size:0.73rem; color: var(--text-muted)">
+            Will trigger: Supervisor → QMS → Regulatory → Dossier${cc.has_adverse_event ? ' → PV E2B' : ''} → Critic
+          </span>
+          <button class="btn btn--primary btn--sm" onclick="triggerPipeline('${cc.change_control_id}', this)">
+            ▶ Trigger Pipeline
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Connection Error</div><div class="empty-state-text">${err.message}</div></div>`;
+  }
+}
+
+async function loadRecentRuns() {
+  const container = document.getElementById('recent-runs');
+  try {
+    const res = await fetch('/api/runs');
+    const runs = await res.json();
+    if (runs.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const statusBadge = (s) => {
+      const map = { running: 'running', review: 'review', approved: 'approved', error: 'error', pending: 'pending' };
+      return `<span class="badge badge--${map[s] || 'pending'}">${s === 'running' ? '<span class="pulse-dot"></span>' : ''}${s}</span>`;
+    };
+
+    container.innerHTML = `
+      <h2 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color: var(--text-secondary);">Recent Pipeline Runs</h2>
+      <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        ${runs.map(r => `
+          <div class="card" style="padding:16px; cursor:pointer;" onclick="window.location.href='/pipeline/${r.run_id}'">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+              <span class="card-subtitle">${r.change_control_id}</span>
+              ${statusBadge(r.status)}
+            </div>
+            <div class="meta-row">
+              <span class="meta-tag">Run: ${r.run_id}</span>
+              <span class="meta-tag">${new Date(r.started_at).toLocaleTimeString()}</span>
+            </div>
+            <div style="margin-top:10px; display:flex; gap:6px;">
+              <a href="/pipeline/${r.run_id}" class="btn btn--secondary btn--sm" onclick="event.stopPropagation()">Pipeline</a>
+              <a href="/review/${r.run_id}" class="btn btn--secondary btn--sm" onclick="event.stopPropagation()">Review</a>
+              <a href="/audit/${r.run_id}" class="btn btn--secondary btn--sm" onclick="event.stopPropagation()">Audit</a>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = '';
+  }
+}
+
+async function triggerPipeline(ccId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Running...';
+  showToast('🚀 Pipeline triggered for ' + ccId);
+
+  try {
+    const res = await fetch('/api/trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ change_control_id: ccId }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast('✅ Pipeline complete — Run ID: ' + data.run_id);
+      window.location.href = '/pipeline/' + data.run_id;
+    } else {
+      showToast('❌ Error: ' + (data.detail || 'Unknown error'));
+      btn.disabled = false;
+      btn.innerHTML = '▶ Trigger Pipeline';
+    }
+  } catch (err) {
+    showToast('❌ Network error: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '▶ Trigger Pipeline';
+  }
+}
+</script>
+{% endblock %}

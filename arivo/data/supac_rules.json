@@ -1,0 +1,99 @@
+{
+  "supac_ss": {
+    "name": "SUPAC-SS: Nonsterile Semisolid Dosage Forms",
+    "categories": {
+      "components_composition": {
+        "level_1": {
+          "description": "Deletion or partial deletion of an ingredient intended to affect only the color, flavor, or fragrance, or change in supplier/grade of an excipient within registered specs",
+          "filing": "Annual Report",
+          "tests": ["Appearance", "Identification", "Assay", "pH"],
+          "documentation": ["Updated batch records", "Comparative release testing"]
+        },
+        "level_2": {
+          "description": "Change in technical grade of an excipient, change ≤5% w/w in inactive ingredient",
+          "filing": "CBE-30",
+          "tests": ["Appearance", "Identification", "Assay", "Content Uniformity", "pH", "In Vitro Release Test (IVRT)", "3-month accelerated stability"],
+          "documentation": ["Comparative in vitro release profiles", "Stability protocol and data", "Updated specifications"]
+        },
+        "level_3": {
+          "description": "Qualitative or quantitative change >5% in excipients, change in crystalline form of drug substance",
+          "filing": "PAS",
+          "tests": ["Full release testing", "IVRT", "In Vivo Bioequivalence (if applicable)", "12-month stability"],
+          "documentation": ["Complete chemistry review", "Bioequivalence study (or IVRT justification)", "Full stability data"]
+        }
+      },
+      "manufacturing_site": {
+        "level_1": {
+          "description": "Site change within same contiguous campus, same equipment, same SOPs",
+          "filing": "Annual Report",
+          "tests": ["One batch release testing"],
+          "documentation": ["Updated batch records"]
+        },
+        "level_2": {
+          "description": "Site change to different campus, same city/region, similar equipment",
+          "filing": "CBE-30",
+          "tests": ["One batch release testing", "IVRT on one batch", "3-month accelerated stability"],
+          "documentation": ["Site comparison table", "Equipment equivalence", "Updated specifications", "Stability protocol"]
+        },
+        "level_3": {
+          "description": "Site change to different city/country, or significant equipment differences",
+          "filing": "PAS",
+          "tests": ["Three batch release testing", "IVRT", "Comparative stability (6-month accelerated + long-term)", "Process validation (3 batches)"],
+          "documentation": ["Complete site comparison", "Process validation protocol and report", "Equipment qualification", "Full stability data", "GMP certification"]
+        }
+      },
+      "scale": {
+        "level_1": {
+          "description": "Scale change up to and including 10x the size of the pilot/bio batch",
+          "filing": "Annual Report",
+          "tests": ["Release testing"],
+          "documentation": ["Updated batch records"]
+        },
+        "level_2": {
+          "description": "Scale change beyond 10x the pilot/bio batch",
+          "filing": "CBE-30",
+          "tests": ["Release testing", "IVRT", "3-month accelerated stability"],
+          "documentation": ["Scale-up protocol", "Mixing study", "Stability data"]
+        }
+      },
+      "manufacturing_process": {
+        "level_1": {
+          "description": "Process changes within approved ranges, minor equipment adjustments",
+          "filing": "Annual Report",
+          "tests": ["Release testing"],
+          "documentation": ["Updated batch records"]
+        },
+        "level_2": {
+          "description": "Change in process parameters beyond approved ranges, change in mixing/milling equipment of same design/operating principle",
+          "filing": "CBE-30",
+          "tests": ["Release testing", "IVRT", "3-month accelerated stability"],
+          "documentation": ["Process change justification", "Equipment comparison", "Stability data"]
+        },
+        "level_3": {
+          "description": "Change in process that may affect product microstructure, change to different equipment design/principle",
+          "filing": "PAS",
+          "tests": ["Full release testing", "IVRT", "Rheology characterization", "Globule size distribution", "12-month stability"],
+          "documentation": ["Complete process validation", "Microstructure characterization", "Full stability data", "Bioequivalence or IVRT justification"]
+        }
+      }
+    },
+    "multi_change_rule": "When multiple changes are made simultaneously, the highest level change determines the overall filing requirement. Example: Level 2 (process) + Level 3 (formulation) = PAS filing."
+  },
+  "supac_ir": {
+    "name": "SUPAC-IR: Immediate Release Solid Oral Dosage Forms",
+    "note": "Simplified rules for MVP demo",
+    "categories": {
+      "components_composition": {
+        "level_1": { "filing": "Annual Report" },
+        "level_2": { "filing": "CBE-30" },
+        "level_3": { "filing": "PAS" }
+      },
+      "manufacturing_site": {
+        "level_1": { "filing": "Annual Report" },
+        "level_2": { "filing": "CBE-0" },
+        "level_3": { "filing": "PAS" }
+      }
+    }
+  },
+  "filing_hierarchy": ["Annual Report", "CBE-0", "CBE-30", "PAS"]
+}

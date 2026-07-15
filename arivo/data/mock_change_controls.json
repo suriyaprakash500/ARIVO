@@ -1,0 +1,164 @@
+[
+  {
+    "change_control_id": "CC-2025-001",
+    "title": "New Drug Substance Manufacturing Site - Semisolid Topical Cream",
+    "description": "Transfer of drug substance (Hydrocortisone Butyrate) manufacturing from Site A (Mumbai, India) to Site B (Hyderabad, India). The new site has been qualified per ICH Q7 with equivalent equipment train. No changes to the registered synthetic route, process parameters, or in-process controls. Facility has been inspected by FDA (EIR issued, no Form 483 observations).",
+    "change_type": "Manufacturing Site",
+    "change_category": "Site Change",
+    "current_state": "Drug substance manufactured at PharmaChem Mumbai (FEI: 3012345678)",
+    "proposed_state": "Drug substance manufactured at PharmaChem Hyderabad (FEI: 3098765432)",
+    "justification": "Capacity expansion to meet increased global demand. The Mumbai site is approaching 95% utilization. Hyderabad site offers 3x capacity with identical GMP infrastructure. Business continuity and supply chain resilience are key drivers.",
+    "affected_products": [
+      {
+        "product_id": "PRD-001",
+        "product_name": "Hydrocortisone Butyrate Cream 0.1%",
+        "dosage_form": "Semisolid - Cream",
+        "strength": "0.1%",
+        "nda_number": "NDA-020001",
+        "markets": ["US", "EU", "JP", "CA"]
+      }
+    ],
+    "current_site": {
+      "site_id": "SITE-A",
+      "name": "PharmaChem Mumbai",
+      "address": "Plot 12, MIDC Industrial Area, Andheri East, Mumbai 400093",
+      "country": "India",
+      "role": "Drug Substance"
+    },
+    "proposed_site": {
+      "site_id": "SITE-B",
+      "name": "PharmaChem Hyderabad",
+      "address": "Survey 45, Genome Valley, Shamirpet, Hyderabad 500078",
+      "country": "India",
+      "role": "Drug Substance"
+    },
+    "deviation": null,
+    "adverse_event": null,
+    "capa_references": [],
+    "attachments": ["Site_Qualification_Report_SITE-B.pdf", "Comparative_Dissolution_Study.pdf", "Stability_Protocol_Transfer.pdf"],
+    "status": "Approved",
+    "created_date": "2025-06-15",
+    "approved_date": "2025-07-01"
+  },
+  {
+    "change_control_id": "CC-2025-002",
+    "title": "Minor Excipient Grade Change - Microcrystalline Cellulose",
+    "description": "Change of Microcrystalline Cellulose (MCC) grade from Avicel PH-102 to Avicel PH-102 SCG (silicified grade) for improved flow properties. The particle size distribution, moisture content, and compressibility index remain within the registered specification ranges. No impact on dissolution profile per USP <711> testing.",
+    "change_type": "Formulation",
+    "change_category": "Components and Composition",
+    "current_state": "Avicel PH-102 (lot-to-lot variability managed by IPC limits)",
+    "proposed_state": "Avicel PH-102 SCG (silicified grade, improved flowability)",
+    "justification": "Reduce tablet weight variability during compression. Current reject rate at 2.3% due to weight variation. SCG grade expected to reduce to <0.5% based on pilot-scale data.",
+    "affected_products": [
+      {
+        "product_id": "PRD-002",
+        "product_name": "Metformin HCl Tablets 500mg",
+        "dosage_form": "Solid Oral - Tablet",
+        "strength": "500mg",
+        "nda_number": "ANDA-076123",
+        "markets": ["US"]
+      }
+    ],
+    "current_site": null,
+    "proposed_site": null,
+    "deviation": null,
+    "adverse_event": null,
+    "capa_references": ["CAPA-2025-019"],
+    "attachments": ["Comparative_Dissolution_f2.pdf", "Excipient_CoA_SCG.pdf"],
+    "status": "Approved",
+    "created_date": "2025-05-20",
+    "approved_date": "2025-06-10"
+  },
+  {
+    "change_control_id": "CC-2025-003",
+    "title": "Process Parameter Change with Associated Adverse Event - Injectable Product",
+    "description": "Investigation into OOS result for endotoxin levels in Batch INJ-2025-0847 of Ceftriaxone for Injection 1g. Root cause identified as sub-optimal depyrogenation tunnel temperature during vial processing. A single adverse event (injection site reaction with pyrexia) was reported by a healthcare professional. CAPA implemented: thermocouple calibration frequency increased, additional IPC hold for endotoxin retesting.",
+    "change_type": "Process",
+    "change_category": "Manufacturing Process",
+    "current_state": "Depyrogenation tunnel operating at 300°C / 3 min residence time",
+    "proposed_state": "Depyrogenation tunnel operating at 350°C / 5 min residence time with continuous monitoring",
+    "justification": "Root cause analysis (Ishikawa + 5-Why) identified intermittent thermocouple drift causing tunnel temperature excursions below validated minimum of 280°C. Increased temperature and residence time provide additional safety margin. Continuous monitoring with automated alert system prevents recurrence.",
+    "affected_products": [
+      {
+        "product_id": "PRD-003",
+        "product_name": "Ceftriaxone for Injection",
+        "dosage_form": "Parenteral - Lyophilized Powder",
+        "strength": "1g",
+        "nda_number": "ANDA-065234",
+        "markets": ["US", "EU"]
+      }
+    ],
+    "current_site": {
+      "site_id": "SITE-C",
+      "name": "SteriPharma LLC",
+      "address": "200 Industrial Parkway, Syracuse, NY 13057",
+      "country": "United States",
+      "role": "Drug Product"
+    },
+    "proposed_site": null,
+    "deviation": {
+      "deviation_id": "DEV-2025-0312",
+      "description": "OOS result for bacterial endotoxin in Batch INJ-2025-0847. LAL test result: 0.85 EU/mL (specification: NMT 0.50 EU/mL). Investigation confirmed thermocouple calibration drift as root cause.",
+      "root_cause": "Thermocouple drift in depyrogenation tunnel causing intermittent temperature excursions below validated minimum (280°C). Calibration records showed last calibration was 45 days overdue.",
+      "batch_numbers": ["INJ-2025-0847"],
+      "batch_disposition": "Rejected",
+      "analytical_results": {
+        "endotoxin_lal": "0.85 EU/mL (Spec: NMT 0.50 EU/mL)",
+        "sterility": "Compliant (14-day incubation, no growth)",
+        "particulate_matter": "Compliant (Sub-visible: 12 particles ≥10μm, 2 particles ≥25μm)",
+        "assay": "99.2% (Spec: 95.0-105.0%)"
+      }
+    },
+    "adverse_event": {
+      "ae_id": "AE-2025-00456",
+      "patient_age": 58,
+      "patient_sex": "F",
+      "patient_weight_kg": 72.0,
+      "reaction_description": "Patient experienced injection site erythema, swelling, and pyrexia (38.9°C) within 4 hours of IV administration of Ceftriaxone 1g reconstituted from Batch INJ-2025-0847. Symptoms resolved within 48 hours with symptomatic treatment (acetaminophen). No hospitalization required.",
+      "meddra_pt": "Injection site reaction",
+      "meddra_code": "10022095",
+      "onset_date": "2025-06-28",
+      "outcome": "Recovered",
+      "seriousness": "Non-Serious",
+      "reporter_type": "Healthcare Professional",
+      "suspect_drug": "Ceftriaxone for Injection 1g",
+      "dose": "1g IV once daily",
+      "route": "Intravenous",
+      "indication": "Community-acquired pneumonia"
+    },
+    "capa_references": ["CAPA-2025-027", "CAPA-2025-028"],
+    "attachments": ["OOS_Investigation_Report.pdf", "RCA_Ishikawa_Diagram.pdf", "Thermocouple_Calibration_Records.pdf", "Adverse_Event_Narrative.pdf"],
+    "status": "Approved",
+    "created_date": "2025-06-30",
+    "approved_date": "2025-07-10"
+  },
+  {
+    "change_control_id": "CC-2025-004",
+    "title": "Analytical Method Update - HPLC to UHPLC Migration",
+    "description": "Validation of updated analytical method for assay and related substances testing of Amlodipine Besylate Tablets. Migration from HPLC (Agilent 1260, C18 250mm column, 40 min run time) to UHPLC (Waters ACQUITY, BEH C18 50mm column, 8 min run time). Method equivalence demonstrated per ICH Q2(R2) with comparable precision, accuracy, linearity, and specificity. Forced degradation studies show equivalent degradation pathway detection.",
+    "change_type": "Analytical Method",
+    "change_category": "In-Process Controls and Specifications",
+    "current_state": "HPLC method ATM-AML-001 Rev 03 (Agilent 1260 Infinity II, C18 250x4.6mm, 5μm, 40 min runtime)",
+    "proposed_state": "UHPLC method ATM-AML-002 Rev 01 (Waters ACQUITY H-Class, BEH C18 50x2.1mm, 1.7μm, 8 min runtime)",
+    "justification": "80% reduction in run time (40 min to 8 min) reduces QC lab throughput bottleneck. Solvent consumption reduced by 75%. Method provides equivalent or superior resolution for all known impurities and degradation products. Cross-validation study (n=30 batches) demonstrates statistical equivalence.",
+    "affected_products": [
+      {
+        "product_id": "PRD-004",
+        "product_name": "Amlodipine Besylate Tablets",
+        "dosage_form": "Solid Oral - Tablet",
+        "strength": "5mg",
+        "nda_number": "ANDA-078456",
+        "markets": ["US", "CA"]
+      }
+    ],
+    "current_site": null,
+    "proposed_site": null,
+    "deviation": null,
+    "adverse_event": null,
+    "capa_references": [],
+    "attachments": ["Method_Validation_Report_UHPLC.pdf", "Cross_Validation_Study_30_Batches.pdf", "Forced_Degradation_Comparison.pdf"],
+    "status": "Approved",
+    "created_date": "2025-04-10",
+    "approved_date": "2025-05-15"
+  }
+]
