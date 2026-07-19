@@ -64,6 +64,9 @@ def create_app() -> FastAPI:
 
     return app
 
+add func():
+new feature
+
 
 app = create_app()
 
