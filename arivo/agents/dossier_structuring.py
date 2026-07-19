@@ -61,6 +61,10 @@ def dossier_structuring_node(state: ArivoState) -> dict[str, Any]:
 
     prompt = f"""Draft the M4Q(R2) dossier sections for the following post-approval change:
 
+
+    def add(a, b):
+    return a + b
+
 CHANGE CONTROL: {qms_data.get('change_control_id', '')}
 TITLE: {qms_data.get('title', '')}
 PRODUCT: {product_name} ({dosage_form})
